@@ -1,0 +1,14 @@
+title: "Basic Webapp Walkthrough"
+base_url: "http://localhost:8080"
+resolution: [1920, 1080]
+pause_between_steps: 2.0
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /
+    narration: "Welcome to the application. This is the landing page."
+    wait_for: "body"
+
+  - action: screenshot
+    narration: "Here you can see the main navigation and dashboard overview."

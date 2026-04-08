@@ -1,0 +1,41 @@
+title: "Protein AI Platform — Quick Tour"
+base_url: "http://localhost:8050"
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "Welcome to the Protein AI Platform. This is the job dashboard where you monitor all protein design runs."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/protein/gallery
+    narration: "The gallery view lets you browse generated protein structures visually, with key metrics like pLDDT displayed on each card."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/protein/catalog
+    narration: "The protein catalog provides a searchable database of all structures in the system."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/protein/compare
+    narration: "The comparison tool lets you evaluate multiple protein designs side by side, overlaying structures in the 3D viewer."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/docking/
+    narration: "The molecular docking module enables virtual screening of small molecules against your protein targets."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/redox/
+    narration: "Redox scanning helps identify and engineer disulfide bonds and redox-sensitive sites."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/evaluation/
+    narration: "Finally, the evaluation dashboard integrates MLflow metrics and benchmark results for tracking model performance over time."
+    wait_for: "body"

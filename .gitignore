@@ -1,0 +1,41 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+.env
+.env.*
+*.pem
+*.key
+credentials.json
+settings.local.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Pixi
+.pixi/
+
+# Demo build artifacts
+.demo_build/
+*.mp4
+*.mp3
+*.wav
+
+# Test/coverage
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+.mypy_cache/
+
+# OS
+.DS_Store
+Thumbs.db
