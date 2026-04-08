@@ -23,12 +23,12 @@ class TestBuildConcatFile:
         concat_path = _build_concat_file(manifest, tmp_path)
         content = concat_path.read_text()
 
-        assert "file 'step_000.png'" in content
+        assert "step_000.png'" in content
         assert "duration 2.0" in content
-        assert "file 'step_001.png'" in content
+        assert "step_001.png'" in content
         assert "duration 3.0" in content
-        # Last frame repeated
-        assert content.strip().endswith("file 'step_001.png'")
+        # Last frame repeated — paths are absolute
+        assert content.strip().endswith("step_001.png'")
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
         manifest = Manifest(title="Empty", steps=[])

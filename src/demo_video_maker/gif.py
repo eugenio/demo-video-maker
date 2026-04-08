@@ -42,10 +42,12 @@ def generate_gif(
     concat_file = work_dir / "gif_concat.txt"
     with open(concat_file, "w") as f:
         for step in manifest.steps:
-            f.write(f"file '{step.frame_path}'\n")
+            abs_path = Path(step.frame_path).resolve()
+            f.write(f"file '{abs_path}'\n")
             f.write(f"duration {step.duration}\n")
         if manifest.steps:
-            f.write(f"file '{manifest.steps[-1].frame_path}'\n")
+            abs_path = Path(manifest.steps[-1].frame_path).resolve()
+            f.write(f"file '{abs_path}'\n")
 
     palette_path = work_dir / "palette.png"
     scale_filter = f"scale={width}:-1:flags=lanczos"

@@ -24,11 +24,13 @@ def _build_concat_file(manifest: Manifest, work_dir: Path) -> Path:
     concat_path = work_dir / "concat.txt"
     with open(concat_path, "w") as f:
         for step in manifest.steps:
-            f.write(f"file '{step.frame_path}'\n")
+            abs_path = Path(step.frame_path).resolve()
+            f.write(f"file '{abs_path}'\n")
             f.write(f"duration {step.duration}\n")
         # FFmpeg concat requires the last file to be listed again
         if manifest.steps:
-            f.write(f"file '{manifest.steps[-1].frame_path}'\n")
+            abs_path = Path(manifest.steps[-1].frame_path).resolve()
+            f.write(f"file '{abs_path}'\n")
     return concat_path
 
 
@@ -63,7 +65,7 @@ def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> Path | None:
     inputs: list[str] = []
     filter_parts: list[str] = []
     for i, (step, offset_sec) in enumerate(zip(audio_steps, offsets, strict=True)):
-        inputs.extend(["-i", step.audio_path])
+        inputs.extend(["-i", str(Path(step.audio_path).resolve())])
         delay_ms = int(offset_sec * 1000)
         filter_parts.append(f"[{i}:a]adelay={delay_ms}|{delay_ms}[a{i}]")
 
