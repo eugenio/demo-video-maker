@@ -26,16 +26,16 @@ steps:
     wait_for: "body"
 
   - action: navigate
-    url: /dashboard/docking/
+    url: /dashboard/docking/jobs
     narration: "The molecular docking module enables virtual screening of small molecules against your protein targets."
     wait_for: "body"
 
   - action: navigate
-    url: /dashboard/redox/
+    url: /dashboard/redox/jobs
     narration: "Redox scanning helps identify and engineer disulfide bonds and redox-sensitive sites."
     wait_for: "body"
 
   - action: navigate
-    url: /dashboard/evaluation/
+    url: /dashboard/evaluation/overview
     narration: "Finally, the evaluation dashboard integrates MLflow metrics and benchmark results for tracking model performance over time."
     wait_for: "body"
