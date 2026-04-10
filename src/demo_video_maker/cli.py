@@ -231,6 +231,37 @@ def narrate(
     click.echo("Done!")
 
 
+@cli.command()
+@click.argument("manifest_file", type=click.Path(exists=True, path_type=Path))
+@click.option("-o", "--output", type=click.Path(path_type=Path), default="demo.mp4")
+@click.option("--gif", is_flag=True, help="Also generate GIF preview")
+@click.option("--html", is_flag=True, help="Also generate HTML tutorial")
+def stitch(
+    manifest_file: Path,
+    output: Path,
+    *,
+    gif: bool,
+    html: bool,
+) -> None:
+    """Re-stitch video from manifest without regenerating narration.
+
+    Use this after manually editing step durations in manifest.json
+    to fix audio-video sync issues.
+    """
+    manifest = Manifest.load(manifest_file)
+    work_dir = manifest_file.parent
+
+    click.echo("Stitching video...")
+    stitch_video(manifest, output, work_dir=work_dir)
+    click.echo(f"Video saved to {output}")
+
+    output_config = OutputConfig(gif=gif, html_tutorial=html)
+    click.echo("Generating extras...")
+    _generate_extras(manifest, output.parent, output_config)
+
+    click.echo("Done!")
+
+
 def main() -> None:
     """Entry point."""
     cli()
