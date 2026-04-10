@@ -28,13 +28,32 @@ async def _execute_step(page: Page, step: Step, base_url: str) -> None:
             await page.goto(url, wait_until="networkidle")
         case ActionType.CLICK:
             if step.selector:
-                await page.click(step.selector)
+                loc = page.locator(step.selector).first
+                try:
+                    await loc.scroll_into_view_if_needed(timeout=5000)
+                except Exception:
+                    pass
+                try:
+                    await loc.click(timeout=10000)
+                except Exception:
+                    logger.warning("Normal click failed on %s, forcing", step.selector)
+                    await loc.click(force=True, timeout=5000)
         case ActionType.TYPE:
             if step.selector and step.text:
-                await page.fill(step.selector, step.text)
+                loc = page.locator(step.selector).first
+                try:
+                    await loc.scroll_into_view_if_needed(timeout=5000)
+                except Exception:
+                    pass
+                await loc.fill(step.text, timeout=10000)
         case ActionType.HOVER:
             if step.selector:
-                await page.hover(step.selector)
+                loc = page.locator(step.selector).first
+                try:
+                    await loc.scroll_into_view_if_needed(timeout=5000)
+                except Exception:
+                    pass
+                await loc.hover(timeout=10000)
         case ActionType.SCROLL:
             if step.selector:
                 await page.evaluate(
