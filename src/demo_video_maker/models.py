@@ -89,6 +89,7 @@ class StepResult(BaseModel):
 
     index: int
     frame_path: str
+    video_path: str | None = None
     narration: str = ""
     audio_path: str | None = None
     duration: float = 2.0

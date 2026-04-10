@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import time
 from pathlib import Path
 
 from playwright.async_api import Page, async_playwright
@@ -149,44 +150,66 @@ async def record_scenario(
     *,
     base_url_override: str | None = None,
     headless: bool = True,
+    video_clips: bool = False,
 ) -> Manifest:
-    """Record a demo scenario, producing frames and a manifest.
+    """Record a demo scenario, producing frames (and optionally a session video) and a manifest.
+
+    When video_clips is True, the entire browser session is recorded as a
+    single video using Playwright's built-in recording. Step timestamps are
+    tracked so the stitcher can overlay narration at the correct offsets.
 
     Args:
         scenario: Parsed scenario definition.
         output_dir: Directory to write frames and manifest into.
         base_url_override: Override the scenario's base_url.
         headless: Run browser in headless mode.
+        video_clips: If True, record the full session as video.
 
     Returns:
-        Manifest linking each step to its frame and narration text.
+        Manifest linking each step to its frame, optional video, and narration text.
     """
     base_url = base_url_override or scenario.base_url
     frames_dir = output_dir / "frames"
     frames_dir.mkdir(parents=True, exist_ok=True)
 
+    video_dir: Path | None = None
+    if video_clips:
+        video_dir = output_dir / "video"
+        video_dir.mkdir(parents=True, exist_ok=True)
+
     step_results: list[StepResult] = []
 
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=headless)
-        context = await browser.new_context(
-            viewport={"width": scenario.resolution[0], "height": scenario.resolution[1]},
-            ignore_https_errors=True,
-        )
+
+        ctx_kwargs: dict[str, object] = {
+            "viewport": {"width": scenario.resolution[0], "height": scenario.resolution[1]},
+            "ignore_https_errors": True,
+        }
+        if video_dir:
+            ctx_kwargs["record_video_dir"] = str(video_dir)
+            ctx_kwargs["record_video_size"] = {
+                "width": scenario.resolution[0],
+                "height": scenario.resolution[1],
+            }
+
+        context = await browser.new_context(**ctx_kwargs)
         page = await context.new_page()
+
+        session_t0 = time.monotonic()
 
         for i, step in enumerate(scenario.steps):
             logger.info("Step %d/%d: %s", i + 1, len(scenario.steps), step.action.value)
 
-            # Determine target selector for cursor positioning (before action)
+            step_t0 = time.monotonic() - session_t0
+            pause = step.duration_override or scenario.pause_between_steps
+
+            # Cursor positioning
             cursor_selector = step.selector or step.highlight
             cursor_on_target = step.action in {
-                ActionType.CLICK,
-                ActionType.HOVER,
-                ActionType.TYPE,
+                ActionType.CLICK, ActionType.HOVER, ActionType.TYPE,
             }
 
-            # Capture click position BEFORE executing (element may vanish after)
             click_position: tuple[int, int] | None = None
             if cursor_on_target and cursor_selector:
                 try:
@@ -199,11 +222,11 @@ async def record_scenario(
                     if step.action == ActionType.CLICK:
                         click_position = (cx, cy)
                     await _show_cursor_at(page, cx, cy)
-                    await asyncio.sleep(0.2)
+                    await asyncio.sleep(0.3)
 
             await _execute_step(page, step, base_url)
 
-            # Show click pulse or hide cursor for non-interactive steps
+            # Post-action visuals
             if click_position:
                 await _show_cursor_at(
                     page, click_position[0], click_position[1], clicked=True,
@@ -214,18 +237,21 @@ async def record_scenario(
             if step.highlight:
                 await _apply_highlight(page, step.highlight)
 
-            # Brief pause for rendering/animations
-            await asyncio.sleep(0.5)
+            # Hold for pause duration (visible in video recording)
+            await asyncio.sleep(pause)
 
+            # Capture screenshot (always — used for GIF, HTML tutorial, fallback)
             frame_path = frames_dir / f"step_{i:03d}.png"
             await page.screenshot(path=str(frame_path), full_page=False)
+
+            step_duration = time.monotonic() - session_t0 - step_t0
 
             step_results.append(
                 StepResult(
                     index=i,
                     frame_path=str(frame_path),
                     narration=step.narration,
-                    duration=step.duration_override or scenario.pause_between_steps,
+                    duration=step_duration if video_clips else pause,
                     click_position=click_position,
                 )
             )
@@ -233,8 +259,20 @@ async def record_scenario(
             if step.highlight:
                 await _remove_highlight(page, step.highlight)
 
+        # Finalize video recording
+        session_video_path: str | None = None
+        if video_clips:
+            video = page.video
+            if video:
+                session_video_path = str(await video.path())
+
         await context.close()
         await browser.close()
+
+    # In clip mode, store the session video path on the first step
+    # so the stitcher knows to use it
+    if session_video_path:
+        step_results[0].video_path = session_video_path
 
     manifest = Manifest(title=scenario.title, steps=step_results)
     manifest.save(output_dir / "manifest.json")

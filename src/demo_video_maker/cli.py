@@ -74,6 +74,8 @@ def cli(*, verbose: bool) -> None:
 @click.option("--base-url", default=None, help="Override scenario base_url")
 @click.option("--tts", type=click.Choice(["kokoro", "openai", "edge", "silent"]), default="kokoro")
 @click.option("--voice", default=None, help="TTS voice name")
+@click.option("--mode", type=click.Choice(["clip", "screenshot"]), default="clip",
+              help="clip: live video per step; screenshot: static frames")
 @click.option("--headed", is_flag=True, help="Show browser window during recording")
 @click.option("--work-dir", type=click.Path(path_type=Path), default=None)
 @click.option("--gif", is_flag=True, help="Also generate GIF preview")
@@ -85,6 +87,7 @@ def record(
     base_url: str | None,
     tts: str,
     voice: str | None,
+    mode: str,
     *,
     headed: bool,
     work_dir: Path | None,
@@ -99,19 +102,22 @@ def record(
     scenario = Scenario.from_yaml(scenario_file)
     click.echo(f"Loaded scenario: {scenario.title} ({len(scenario.steps)} steps)")
 
+    use_clips = mode == "clip"
+
     # 1. Record browser session
-    click.echo("Recording browser session...")
+    click.echo(f"Recording browser session ({mode} mode)...")
     manifest = asyncio.run(
         record_scenario(
             scenario,
             work_dir,
             base_url_override=base_url,
             headless=not headed,
+            video_clips=use_clips,
         )
     )
 
-    # 2. Apply cursor overlays
-    if cursor:
+    # 2. Apply cursor overlays (screenshot mode only — clip mode has DOM cursor)
+    if cursor and not use_clips:
         cursor_config = CursorConfig()
         manifest = apply_cursors_to_manifest(manifest, cursor_config, work_dir / "cursors")
 
