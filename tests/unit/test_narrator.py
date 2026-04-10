@@ -6,7 +6,13 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from demo_video_maker.models import Manifest, StepResult
-from demo_video_maker.narrator import EdgeTTS, KokoroTTS, SilentBackend, generate_narration
+from demo_video_maker.narrator import (
+    EdgeTTS,
+    KokoroTTS,
+    SilentBackend,
+    generate_narration,
+    pre_generate_audio,
+)
 
 
 class TestSilentBackend:
@@ -100,3 +106,67 @@ class TestGenerateNarration:
         assert result.steps[1].audio_path is None
         # Duration should be adjusted to audio length + buffer
         assert result.steps[0].duration == 3.5
+
+    @patch("demo_video_maker.narrator.get_audio_duration", return_value=10.0)
+    def test_fixed_durations_does_not_extend(
+        self, mock_duration: MagicMock, tmp_path: Path
+    ) -> None:
+        manifest = Manifest(
+            title="Test",
+            steps=[
+                StepResult(index=0, frame_path="f0.png", narration="Hello", duration=2.0),
+            ],
+        )
+        mock_backend = MagicMock()
+        result = generate_narration(
+            manifest, tmp_path / "audio", backend=mock_backend, fixed_durations=True,
+        )
+
+        assert result.steps[0].audio_path is not None
+        # Duration must NOT be extended in fixed_durations mode
+        assert result.steps[0].duration == 2.0
+
+
+class TestPreGenerateAudio:
+    """Tests for the pre_generate_audio function."""
+
+    @patch("demo_video_maker.narrator.get_audio_duration", return_value=5.0)
+    def test_returns_audio_paths_and_durations(
+        self, mock_duration: MagicMock, tmp_path: Path
+    ) -> None:
+        from demo_video_maker.models import Step
+
+        steps = [
+            Step(action="navigate", url="/page1", narration="Hello world"),
+            Step(action="click", selector="#btn", narration=""),
+            Step(action="navigate", url="/page2", narration="Goodbye world"),
+        ]
+        mock_backend = MagicMock()
+        result = pre_generate_audio(steps, tmp_path / "audio", mock_backend)
+
+        # Only steps 0 and 2 have narration
+        assert 0 in result
+        assert 1 not in result
+        assert 2 in result
+        assert mock_backend.synthesize.call_count == 2
+
+        # Each entry is (path, duration)
+        path_0, dur_0 = result[0]
+        assert dur_0 == 5.0
+        assert "step_000.mp3" in path_0
+
+    @patch("demo_video_maker.narrator.get_audio_duration", return_value=3.0)
+    def test_empty_narrations_skipped(
+        self, mock_duration: MagicMock, tmp_path: Path
+    ) -> None:
+        from demo_video_maker.models import Step
+
+        steps = [
+            Step(action="click", selector="#btn", narration=""),
+            Step(action="wait", wait_seconds=1.0, narration=""),
+        ]
+        mock_backend = MagicMock()
+        result = pre_generate_audio(steps, tmp_path / "audio", mock_backend)
+
+        assert len(result) == 0
+        mock_backend.synthesize.assert_not_called()
