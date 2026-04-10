@@ -173,6 +173,7 @@ async def record_scenario(
     base_url_override: str | None = None,
     headless: bool = True,
     video_clips: bool = False,
+    audio_durations: dict[int, float] | None = None,
 ) -> Manifest:
     """Record a demo scenario, producing frames (and optionally a session video) and a manifest.
 
@@ -186,6 +187,9 @@ async def record_scenario(
         base_url_override: Override the scenario's base_url.
         headless: Run browser in headless mode.
         video_clips: If True, record the full session as video.
+        audio_durations: Pre-computed narration durations per step index.
+            When provided, each step's hold time is extended to fit its
+            narration audio, preventing audio overlap.
 
     Returns:
         Manifest linking each step to its frame, optional video, and narration text.
@@ -232,6 +236,9 @@ async def record_scenario(
 
             step_t0 = time.monotonic() - session_t0
             pause = step.duration_override or scenario.pause_between_steps
+            # Extend pause to fit narration audio (prevents overlap)
+            if audio_durations and i in audio_durations:
+                pause = max(pause, audio_durations[i] + 0.5)
 
             # Cursor positioning
             cursor_selector = step.selector or step.highlight

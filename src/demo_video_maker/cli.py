@@ -18,6 +18,7 @@ from demo_video_maker.narrator import (
     OpenAITTS,
     SilentBackend,
     generate_narration,
+    pre_generate_audio,
 )
 from demo_video_maker.recorder import record_scenario
 from demo_video_maker.stitcher import stitch_video
@@ -104,6 +105,21 @@ def record(
 
     use_clips = mode == "clip"
 
+    # Build TTS backend
+    backend_map = {
+        "kokoro": lambda: KokoroTTS(voice=voice or "af_heart"),
+        "openai": lambda: OpenAITTS(voice=voice or scenario.voice),
+        "edge": lambda: EdgeTTS(voice=voice or "en-US-AvaMultilingualNeural"),
+        "silent": lambda: SilentBackend(),
+    }
+    backend = backend_map[tts]()
+
+    # In clip mode: generate audio FIRST so recording pauses match narration length
+    pre_audio: dict[int, tuple[str, float]] = {}
+    if use_clips:
+        click.echo(f"Pre-generating narration ({tts} backend)...")
+        pre_audio = pre_generate_audio(scenario.steps, work_dir / "audio", backend)
+
     # 1. Record browser session
     click.echo(f"Recording browser session ({mode} mode)...")
     manifest = asyncio.run(
@@ -113,6 +129,7 @@ def record(
             base_url_override=base_url,
             headless=not headed,
             video_clips=use_clips,
+            audio_durations={k: v[1] for k, v in pre_audio.items()} if pre_audio else None,
         )
     )
 
@@ -121,18 +138,14 @@ def record(
         cursor_config = CursorConfig()
         manifest = apply_cursors_to_manifest(manifest, cursor_config, work_dir / "cursors")
 
-    # 3. Generate narration
-    backend_map = {
-        "kokoro": lambda: KokoroTTS(voice=voice or "af_heart"),
-        "openai": lambda: OpenAITTS(voice=voice or scenario.voice),
-        "edge": lambda: EdgeTTS(voice=voice or "en-US-AvaMultilingualNeural"),
-        "silent": lambda: SilentBackend(),
-    }
-    backend = backend_map[tts]()
-    click.echo(f"Generating narration ({tts} backend)...")
-    manifest = generate_narration(
-        manifest, work_dir / "audio", backend=backend, fixed_durations=use_clips,
-    )
+    # 3. Generate narration (or attach pre-generated audio in clip mode)
+    if use_clips:
+        for step in manifest.steps:
+            if step.index in pre_audio:
+                step.audio_path = pre_audio[step.index][0]
+    else:
+        click.echo(f"Generating narration ({tts} backend)...")
+        manifest = generate_narration(manifest, work_dir / "audio", backend=backend)
 
     # 4. Stitch final video
     click.echo("Stitching video...")

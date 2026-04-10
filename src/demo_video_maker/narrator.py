@@ -215,6 +215,40 @@ def get_audio_duration(audio_path: Path) -> float:
     return float(info["format"]["duration"])
 
 
+def pre_generate_audio(
+    scenario_steps: list[object],
+    output_dir: Path,
+    backend: TTSBackend,
+) -> dict[int, tuple[str, float]]:
+    """Pre-generate narration audio from scenario steps before recording.
+
+    Used in clip mode so the recorder knows how long to hold each step.
+
+    Args:
+        scenario_steps: List of scenario Step objects with narration text.
+        output_dir: Directory to write audio files into.
+        backend: TTS backend to use.
+
+    Returns:
+        Dict mapping step index to (audio_path, audio_duration_seconds).
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    result: dict[int, tuple[str, float]] = {}
+
+    for i, step in enumerate(scenario_steps):
+        narration = getattr(step, "narration", "")
+        if not narration:
+            continue
+
+        audio_path = output_dir / f"step_{i:03d}.mp3"
+        logger.info("Pre-generating narration for step %d...", i)
+        backend.synthesize(narration, audio_path)
+        duration = get_audio_duration(audio_path)
+        result[i] = (str(audio_path), duration)
+
+    return result
+
+
 def generate_narration(
     manifest: Manifest,
     output_dir: Path,
