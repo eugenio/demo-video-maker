@@ -186,29 +186,28 @@ async def record_scenario(
                 ActionType.TYPE,
             }
 
-            # Show cursor moving toward the target BEFORE executing the action
+            # Capture click position BEFORE executing (element may vanish after)
+            click_position: tuple[int, int] | None = None
             if cursor_on_target and cursor_selector:
-                box = await page.locator(cursor_selector).bounding_box()
+                try:
+                    box = await page.locator(cursor_selector).bounding_box(timeout=5000)
+                except Exception:
+                    box = None
                 if box:
                     cx = int(box["x"] + box["width"] / 2)
                     cy = int(box["y"] + box["height"] / 2)
+                    if step.action == ActionType.CLICK:
+                        click_position = (cx, cy)
                     await _show_cursor_at(page, cx, cy)
                     await asyncio.sleep(0.2)
 
             await _execute_step(page, step, base_url)
 
-            # Capture click position for cursor overlay
-            click_position: tuple[int, int] | None = None
-            if step.action == ActionType.CLICK and step.selector:
-                box = await page.locator(step.selector).bounding_box()
-                if box:
-                    click_position = (
-                        int(box["x"] + box["width"] / 2),
-                        int(box["y"] + box["height"] / 2),
-                    )
-                    await _show_cursor_at(
-                        page, click_position[0], click_position[1], clicked=True,
-                    )
+            # Show click pulse or hide cursor for non-interactive steps
+            if click_position:
+                await _show_cursor_at(
+                    page, click_position[0], click_position[1], clicked=True,
+                )
             elif step.action in {ActionType.NAVIGATE, ActionType.SCREENSHOT}:
                 await _hide_cursor(page)
 
