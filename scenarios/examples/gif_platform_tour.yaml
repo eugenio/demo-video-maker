@@ -1,0 +1,42 @@
+title: "Platform Quick Tour"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1280, 720]
+pause_between_steps: 1.5
+voice: "af_heart"
+
+steps:
+  - action: navigate
+    url: /dashboard/projects
+    narration: "Projects."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/stability/predict
+    narration: "Stability."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/redox/jobs
+    narration: "Redox tuning."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/docking/jobs
+    narration: "Docking."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/admet/predict
+    narration: "ADMET."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/evaluation/overview
+    narration: "Evaluation."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/projects
+    narration: "All in one platform."
+    wait_for: "body"
+    duration_override: 2.5

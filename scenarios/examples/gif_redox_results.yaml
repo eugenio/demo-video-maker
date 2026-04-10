@@ -1,0 +1,29 @@
+title: "Redox Scan Results"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1280, 720]
+pause_between_steps: 2.0
+voice: "af_heart"
+
+steps:
+  - action: navigate
+    url: /dashboard/redox/jobs
+    narration: "Two completed redox scans."
+    wait_for: "body"
+    duration_override: 2.5
+
+  - action: click
+    selector: "a[href*='redox/jobs/']"
+    narration: "View forty-four variant results."
+    highlight: "a[href*='redox/jobs/']"
+
+  - action: wait
+    wait_seconds: 1.5
+    narration: ""
+
+  - action: scroll
+    distance: 300
+    narration: "Ranked by redox potential shift."
+
+  - action: screenshot
+    narration: "Engineered electron transfer proteins."
+    duration_override: 3.0

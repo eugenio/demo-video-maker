@@ -1,0 +1,136 @@
+title: "Protein AI Platform — From Sequence to Drug Candidate"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1920, 1080]
+pause_between_steps: 3.0
+voice: "af_heart"
+
+steps:
+  # ─── ACT 1: Project Setup ───────────────────────────────────────
+  - action: navigate
+    url: /dashboard/projects
+    narration: "Welcome to the Protein AI Platform. Every analysis starts with a project. Here we have two: a default workspace and the MtrA supramolecular assembly project."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: scroll
+    distance: 100
+    narration: "Projects organize your jobs across protein design, redox tuning, and molecular docking. Let's explore what we can do."
+    duration_override: 4.0
+
+  # ─── ACT 2: The Sidebar — Platform Overview ────────────────────
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "The sidebar gives you instant access to every module. From structure prediction to drug screening, everything is one click away."
+    wait_for: "body"
+    duration_override: 4.5
+
+  # ─── ACT 3: Stability Prediction — Instant Analysis ────────────
+  - action: navigate
+    url: /dashboard/stability/predict
+    narration: "Let's start with stability prediction. We paste a protein sequence and get instant results: melting temperature, solubility, and six physicochemical properties."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: type
+    selector: "#sequence"
+    text: "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWERVMGDGERQFSTLKSTVEAIWAGIKATEAAVSEEFGLAPFLPDQIHFVHSQELLSRYPDLDAKGRERAIAKDLGAVFLVGIGGKLSDGHRHDVRAPDYDDWSTPSELGHAGLNGDILVWNPVLEDAFELSSMGIRVDADTLKHQLALTGDEDRLELEWHQALLRGEMPQTIGGGIGQSRLTMLLLQLPHIGQVQAGVWPAAVRESVPSLL"
+    narration: "We enter the amino acid sequence of our target protein. This is a three hundred residue enzyme we want to characterize."
+    highlight: "#sequence"
+    duration_override: 5.0
+
+  - action: click
+    selector: "button[type='submit']"
+    narration: "Click Predict. The analysis runs in under a second using BioPython, no GPU required."
+    highlight: "button[type='submit']"
+    duration_override: 4.0
+
+  - action: wait
+    wait_seconds: 2.0
+    narration: "Results show thermostability at sixty-three degrees Celsius, a solubility score of zero point seven, and the protein is classified as stable."
+
+  - action: screenshot
+    narration: "Six metrics at a glance: melting temperature, solubility, instability index, isoelectric point, hydropathicity, and aromaticity."
+    duration_override: 5.0
+
+  # ─── ACT 4: ADMET Prediction — Drug Properties ─────────────────
+  - action: navigate
+    url: /dashboard/admet/predict
+    narration: "Now let's check the ADMET properties of a potential drug molecule. We enter its SMILES notation to predict absorption, distribution, metabolism, excretion, and toxicity."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: screenshot
+    narration: "The ADMET form accepts SMILES strings. You can paste multiple compounds, one per line, for batch screening."
+    duration_override: 3.5
+
+  # ─── ACT 5: Redox Engineering — Real Results ───────────────────
+  - action: navigate
+    url: /dashboard/redox/jobs
+    narration: "The redox tuning module is where things get exciting. Here are two completed scans, each analyzing forty-four mutations across a heme-binding protein."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: click
+    selector: "a[href*='redox/jobs/']"
+    narration: "Click View to inspect the results. The six-step pipeline detected heme groups, generated mutations, filtered by fitness, predicted structures, and computed electrostatics."
+    highlight: "a[href*='redox/jobs/']"
+    duration_override: 5.0
+
+  - action: wait
+    wait_seconds: 2.0
+    narration: "Each variant shows its predicted redox potential shift, structure confidence, and fitness score. Researchers use this to engineer electron transfer proteins."
+
+  - action: screenshot
+    narration: "The detail view ranks all forty-four variants by their predicted electrochemical shift. Green badges mark completed steps in the pipeline."
+    duration_override: 5.0
+
+  # ─── ACT 6: Redox New Scan Form ────────────────────────────────
+  - action: navigate
+    url: /dashboard/redox/new
+    narration: "Starting a new redox scan is straightforward. Upload a PDB file, set your target potential shift, choose a mutation strategy, and submit."
+    wait_for: "body"
+    duration_override: 4.5
+
+  - action: scroll
+    distance: 400
+    narration: "Configure the structure prediction method, maximum mutations to scan, and the pH for electrostatics calculations. The platform handles the rest."
+    duration_override: 4.0
+
+  # ─── ACT 7: Molecular Docking ──────────────────────────────────
+  - action: navigate
+    url: /dashboard/docking/jobs
+    narration: "The molecular docking module screens small molecules against your protein targets. AutoDock Vina and Gnina engines run in parallel for maximum coverage."
+    wait_for: "body"
+    duration_override: 4.5
+
+  - action: navigate
+    url: /dashboard/docking/screening
+    narration: "Virtual screening lets you test libraries of compounds in batch. Results include binding affinity scores and PoseBusters validation for pose quality."
+    wait_for: "body"
+    duration_override: 4.0
+
+  # ─── ACT 8: The AI Copilot ─────────────────────────────────────
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "Every page features the AI Copilot in the bottom right corner. It connects to over one hundred and forty tools and understands natural language requests."
+    wait_for: "body"
+    highlight: "button[class*='copilot'], button[aria-label*='assistant'], #copilot-toggle"
+    duration_override: 5.0
+
+  - action: screenshot
+    narration: "Ask the Copilot to predict a structure, run a docking job, or build a multi-step pipeline. It orchestrates everything through the MCP protocol."
+    duration_override: 4.5
+
+  # ─── ACT 9: Evaluation Dashboard ───────────────────────────────
+  - action: navigate
+    url: /dashboard/evaluation/overview
+    narration: "The evaluation dashboard tracks model performance with MLflow. Compare prediction accuracy, diversity metrics, and structural quality across experiments."
+    wait_for: "body"
+    duration_override: 4.5
+
+  # ─── CLOSING ────────────────────────────────────────────────────
+  - action: navigate
+    url: /dashboard/projects
+    narration: "From stability prediction to drug discovery, the Protein AI Platform brings the entire computational biology workflow into one unified, self-hosted interface. Start your next experiment today."
+    wait_for: "body"
+    duration_override: 6.0

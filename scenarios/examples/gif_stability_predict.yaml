@@ -1,0 +1,30 @@
+title: "Stability Prediction in Action"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1280, 720]
+pause_between_steps: 2.0
+voice: "af_heart"
+
+steps:
+  - action: navigate
+    url: /dashboard/stability/predict
+    narration: "Paste a protein sequence."
+    wait_for: "body"
+
+  - action: type
+    selector: "#sequence"
+    text: "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVH"
+    narration: "Enter seventy amino acids."
+    highlight: "#sequence"
+
+  - action: click
+    selector: "button[type='submit']"
+    narration: "Get instant results."
+    highlight: "button[type='submit']"
+
+  - action: wait
+    wait_seconds: 1.5
+    narration: ""
+
+  - action: screenshot
+    narration: "Six stability metrics in one second."
+    duration_override: 3.0
