@@ -92,12 +92,12 @@ def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> Path | None:
 
     merged_path = work_dir / "narration_merged.mp3"
 
-    # Calculate cumulative time offsets
+    # Calculate time offsets: use audio_offset if set, otherwise cumulative
     offsets: list[float] = []
     cumulative = 0.0
     for step in manifest.steps:
         if step.audio_path:
-            offsets.append(cumulative)
+            offsets.append(step.audio_offset if step.audio_offset is not None else cumulative)
         cumulative += step.duration
 
     # Build FFmpeg filter graph

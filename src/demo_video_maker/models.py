@@ -93,6 +93,7 @@ class StepResult(BaseModel):
     narration: str = ""
     audio_path: str | None = None
     duration: float = 2.0
+    audio_offset: float | None = None
     click_position: tuple[int, int] | None = None
 
 
