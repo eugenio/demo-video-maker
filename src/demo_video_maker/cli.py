@@ -82,6 +82,7 @@ def cli(*, verbose: bool) -> None:
 @click.option("--gif", is_flag=True, help="Also generate GIF preview")
 @click.option("--html", is_flag=True, help="Also generate HTML tutorial")
 @click.option("--cursor/--no-cursor", default=True, help="Enable cursor overlay on click steps")
+@click.option("--gap", type=float, default=0.8, help="Seconds of pause after narration (clip mode)")
 def record(
     scenario_file: Path,
     output: Path,
@@ -89,6 +90,7 @@ def record(
     tts: str,
     voice: str | None,
     mode: str,
+    gap: float,
     *,
     headed: bool,
     work_dir: Path | None,
@@ -152,7 +154,7 @@ def record(
 
     # 4. Stitch final video
     click.echo("Stitching video...")
-    stitch_video(manifest, output, work_dir=work_dir)
+    stitch_video(manifest, output, work_dir=work_dir, transition_gap=gap)
     click.echo(f"Video saved to {output}")
 
     # 5. Generate extras
@@ -239,9 +241,11 @@ def narrate(
 @click.option("-o", "--output", type=click.Path(path_type=Path), default="demo.mp4")
 @click.option("--gif", is_flag=True, help="Also generate GIF preview")
 @click.option("--html", is_flag=True, help="Also generate HTML tutorial")
+@click.option("--gap", type=float, default=0.8, help="Seconds of pause after narration (clip mode)")
 def stitch(
     manifest_file: Path,
     output: Path,
+    gap: float,
     *,
     gif: bool,
     html: bool,
@@ -255,7 +259,7 @@ def stitch(
     work_dir = manifest_file.parent
 
     click.echo("Stitching video...")
-    stitch_video(manifest, output, work_dir=work_dir)
+    stitch_video(manifest, output, work_dir=work_dir, transition_gap=gap)
     click.echo(f"Video saved to {output}")
 
     output_config = OutputConfig(gif=gif, html_tutorial=html)

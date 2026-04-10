@@ -156,6 +156,7 @@ def stitch_video(
     *,
     work_dir: Path | None = None,
     fps: int = 1,
+    transition_gap: float = 0.8,
 ) -> Path:
     """Combine frames or video clips with narration into a final MP4.
 
@@ -168,6 +169,8 @@ def stitch_video(
         output_path: Path for the output MP4 file.
         work_dir: Working directory for temp files. Defaults to output parent.
         fps: Frames per second for screenshot mode.
+        transition_gap: Seconds of pause after narration ends before
+            cutting to the next step (clip mode only).
 
     Returns:
         Path to the created video file.
@@ -178,21 +181,27 @@ def stitch_video(
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if _has_video_clips(manifest):
-        return _stitch_clips(manifest, output_path, work_dir)
+        return _stitch_clips(manifest, output_path, work_dir, transition_gap)
     return _stitch_frames(manifest, output_path, work_dir, fps)
 
 
-def _stitch_clips(manifest: Manifest, output_path: Path, work_dir: Path) -> Path:
-    """Overlay narration audio onto the session video recording.
+def _stitch_clips(
+    manifest: Manifest, output_path: Path, work_dir: Path, transition_gap: float,
+) -> Path:
+    """Cut per-step clips from session video, trim to narration + gap, and concat.
 
-    The session video is a single .webm recorded by Playwright. Narration
-    audio tracks are positioned at cumulative step timestamps using the
-    adelay filter, then mixed and muxed with the video.
+    For each step:
+      1. Extract the video segment at the step's timestamp range
+      2. Trim it to audio_duration + transition_gap (or a minimum if no audio)
+      3. If the extracted clip is shorter, pad with the last frame
+      4. Overlay the step's narration audio
+      5. Concatenate all trimmed clips into the final video
 
     Args:
         manifest: Recording manifest with session video and audio paths.
         output_path: Output MP4 path.
         work_dir: Working directory for temp files.
+        transition_gap: Seconds after narration before cutting to next step.
 
     Returns:
         Path to the created video file.
@@ -202,32 +211,83 @@ def _stitch_clips(manifest: Manifest, output_path: Path, work_dir: Path) -> Path
         logger.warning("No session video found, falling back to frame stitching")
         return _stitch_frames(manifest, output_path, work_dir, fps=1)
 
-    result = _merge_audio_tracks(manifest, work_dir)
-    audio_track, audio_end = result if result else (None, 0.0)
+    clips_dir = work_dir / "trimmed_clips"
+    clips_dir.mkdir(parents=True, exist_ok=True)
 
-    cmd = ["ffmpeg", "-y", "-i", str(session_video)]
+    # Calculate each step's start time in the session video
+    step_starts: list[float] = []
+    cumulative = 0.0
+    for step in manifest.steps:
+        step_starts.append(step.audio_offset if step.audio_offset is not None else cumulative)
+        cumulative += step.duration
 
-    if audio_track:
-        cmd.extend(["-i", str(audio_track)])
+    session_dur = _get_duration(session_video)
+    min_step_dur = 2.0  # minimum duration for steps without narration
 
-    # Trim to whichever ends first: last narration or video
-    video_dur = _get_duration(session_video)
-    trim_at = min(audio_end, video_dur) if audio_end > 0 else video_dur
+    concat_entries: list[str] = []
 
-    cmd.extend([
-        "-c:v", "libx264", "-pix_fmt", "yuv420p",
-        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-        "-t", f"{trim_at:.2f}",
-    ])
+    for i, step in enumerate(manifest.steps):
+        clip_path = clips_dir / f"step_{i:03d}.mp4"
+        ss = step_starts[i]
 
-    if audio_track:
-        cmd.extend(["-c:a", "aac", "-b:a", "192k"])
-    else:
-        cmd.extend(["-an"])
+        # Available video for this step
+        next_ss = step_starts[i + 1] if i + 1 < len(manifest.steps) else session_dur
+        available = next_ss - ss
 
-    cmd.extend(["-movflags", "+faststart", str(output_path)])
+        # Target duration: narration + gap, or minimum
+        if step.audio_path and Path(step.audio_path).exists():
+            audio_dur = _get_duration(Path(step.audio_path))
+            target_dur = audio_dur + transition_gap
+        else:
+            target_dur = min(step.duration, min_step_dur + transition_gap)
 
-    logger.info("Stitching session video + narration to %s", output_path)
+        # Don't exceed available video (but we can pad with last frame)
+        extract_dur = min(available, target_dur)
+
+        # Build ffmpeg command to extract + pad + mux audio
+        cmd = ["ffmpeg", "-y", "-ss", f"{ss:.3f}", "-i", str(session_video)]
+
+        if step.audio_path and Path(step.audio_path).exists():
+            cmd.extend(["-i", str(Path(step.audio_path).resolve())])
+
+        # Video filter: pad with last frame if needed, then scale
+        vf_parts = []
+        if target_dur > extract_dur + 0.1:
+            pad = target_dur - extract_dur
+            vf_parts.append(f"tpad=stop_mode=clone:stop_duration={pad:.3f}")
+        vf_parts.append("scale=trunc(iw/2)*2:trunc(ih/2)*2")
+
+        cmd.extend([
+            "-t", f"{target_dur:.3f}",
+            "-vf", ",".join(vf_parts),
+            "-c:v", "libx264", "-pix_fmt", "yuv420p", "-r", "25",
+        ])
+
+        if step.audio_path and Path(step.audio_path).exists():
+            cmd.extend(["-map", "0:v", "-map", "1:a", "-c:a", "aac", "-b:a", "192k"])
+        else:
+            cmd.extend(["-an"])
+
+        cmd.append(str(clip_path))
+        subprocess.run(cmd, check=True, capture_output=True)
+
+        concat_entries.append(f"file '{clip_path.resolve()}'")
+        logger.debug("Step %d: %.1fs video (%.1fs audio + %.1fs gap)", i, target_dur,
+                      target_dur - transition_gap, transition_gap)
+
+    # Concat all trimmed clips
+    concat_file = work_dir / "trimmed_concat.txt"
+    concat_file.write_text("\n".join(concat_entries))
+
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "concat", "-safe", "0", "-i", str(concat_file),
+        "-c:v", "copy", "-c:a", "copy",
+        "-movflags", "+faststart",
+        str(output_path),
+    ]
+
+    logger.info("Stitching %d trimmed clips to %s", len(manifest.steps), output_path)
     subprocess.run(cmd, check=True, capture_output=True)
     logger.info("Video created: %s", output_path)
     return output_path
