@@ -201,6 +201,10 @@ async def record_scenario(
     video_dir: Path | None = None
     if video_clips:
         video_dir = output_dir / "video"
+        # Clean old session videos to avoid stale file confusion
+        if video_dir.exists():
+            for old in video_dir.glob("*.webm"):
+                old.unlink()
         video_dir.mkdir(parents=True, exist_ok=True)
 
     step_results: list[StepResult] = []

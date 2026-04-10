@@ -25,12 +25,18 @@ def _get_duration(media_path: Path) -> float:
         [
             "ffprobe", "-v", "quiet",
             "-print_format", "json",
-            "-show_format", str(media_path),
+            "-show_format", "-show_streams", str(media_path),
         ],
         capture_output=True, text=True, check=True,
     )
     info = json.loads(result.stdout)
-    return float(info["format"]["duration"])
+    # Prefer format duration, fall back to longest stream duration (webm compat)
+    if "duration" in info.get("format", {}):
+        return float(info["format"]["duration"])
+    for stream in info.get("streams", []):
+        if "duration" in stream:
+            return float(stream["duration"])
+    return 0.0
 
 
 def _build_concat_file(manifest: Manifest, work_dir: Path) -> Path:
@@ -73,7 +79,7 @@ def _get_session_video(manifest: Manifest) -> Path | None:
     return None
 
 
-def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> Path | None:
+def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> tuple[Path, float] | None:
     """Merge per-step audio files into a single track with correct timing.
 
     Uses FFmpeg's adelay filter to position each narration clip at the correct
@@ -84,7 +90,8 @@ def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> Path | None:
         work_dir: Working directory for temporary files.
 
     Returns:
-        Path to the merged audio file, or None if no audio exists.
+        Tuple of (merged audio path, end time of last narration in seconds),
+        or None if no audio exists.
     """
     audio_steps = [s for s in manifest.steps if s.audio_path]
     if not audio_steps:
@@ -121,7 +128,14 @@ def _merge_audio_tracks(manifest: Manifest, work_dir: Path) -> Path | None:
         str(merged_path),
     ]
     subprocess.run(cmd, check=True, capture_output=True)
-    return merged_path
+
+    # Calculate when the last narration ends
+    last_end = 0.0
+    for step, offset in zip(audio_steps, offsets, strict=True):
+        audio_dur = _get_duration(Path(step.audio_path))
+        last_end = max(last_end, offset + audio_dur)
+
+    return merged_path, last_end
 
 
 def _has_video_clips(manifest: Manifest) -> bool:
@@ -188,20 +202,26 @@ def _stitch_clips(manifest: Manifest, output_path: Path, work_dir: Path) -> Path
         logger.warning("No session video found, falling back to frame stitching")
         return _stitch_frames(manifest, output_path, work_dir, fps=1)
 
-    audio_track = _merge_audio_tracks(manifest, work_dir)
+    result = _merge_audio_tracks(manifest, work_dir)
+    audio_track, audio_end = result if result else (None, 0.0)
 
     cmd = ["ffmpeg", "-y", "-i", str(session_video)]
 
     if audio_track:
         cmd.extend(["-i", str(audio_track)])
 
+    # Trim to whichever ends first: last narration or video
+    video_dur = _get_duration(session_video)
+    trim_at = min(audio_end, video_dur) if audio_end > 0 else video_dur
+
     cmd.extend([
         "-c:v", "libx264", "-pix_fmt", "yuv420p",
         "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+        "-t", f"{trim_at:.2f}",
     ])
 
     if audio_track:
-        cmd.extend(["-c:a", "aac", "-b:a", "192k", "-shortest"])
+        cmd.extend(["-c:a", "aac", "-b:a", "192k"])
     else:
         cmd.extend(["-an"])
 
@@ -228,7 +248,8 @@ def _stitch_frames(
         Path to the created video file.
     """
     concat_file = _build_concat_file(manifest, work_dir)
-    audio_track = _merge_audio_tracks(manifest, work_dir)
+    result = _merge_audio_tracks(manifest, work_dir)
+    audio_track, audio_end = result if result else (None, 0.0)
 
     cmd = [
         "ffmpeg", "-y",
@@ -246,11 +267,10 @@ def _stitch_frames(
     ])
 
     if audio_track:
-        cmd.extend(["-c:a", "aac", "-b:a", "192k"])
+        cmd.extend(["-c:a", "aac", "-b:a", "192k", "-t", f"{audio_end:.2f}"])
 
     cmd.extend([
         "-movflags", "+faststart",
-        "-shortest",
         str(output_path),
     ])
 
