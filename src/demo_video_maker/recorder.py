@@ -218,6 +218,13 @@ async def record_scenario(
         context = await browser.new_context(**ctx_kwargs)
         page = await context.new_page()
 
+        # Pre-navigate to avoid blank white frame at video start
+        if video_dir and scenario.steps:
+            first = scenario.steps[0]
+            if first.action == ActionType.NAVIGATE and first.url:
+                url = first.url if first.url.startswith("http") else f"{base_url}{first.url}"
+                await page.goto(url, wait_until="networkidle")
+
         session_t0 = time.monotonic()
 
         for i, step in enumerate(scenario.steps):

@@ -220,6 +220,7 @@ def generate_narration(
     output_dir: Path,
     *,
     backend: TTSBackend | None = None,
+    fixed_durations: bool = False,
 ) -> Manifest:
     """Generate narration audio for each step in the manifest.
 
@@ -227,6 +228,8 @@ def generate_narration(
         manifest: Recording manifest with step narrations.
         output_dir: Directory to write audio files into.
         backend: TTS backend to use. Defaults to OpenAITTS.
+        fixed_durations: If True, do not extend step durations to match
+            audio length. Used in clip mode where the video is pre-recorded.
 
     Returns:
         Updated manifest with audio paths and adjusted durations.
@@ -245,7 +248,8 @@ def generate_narration(
         backend.synthesize(step.narration, audio_path)
 
         step.audio_path = str(audio_path)
-        duration = get_audio_duration(audio_path)
-        step.duration = max(step.duration, duration + 0.5)
+        if not fixed_durations:
+            duration = get_audio_duration(audio_path)
+            step.duration = max(step.duration, duration + 0.5)
 
     return manifest

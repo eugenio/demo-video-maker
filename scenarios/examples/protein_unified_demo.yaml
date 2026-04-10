@@ -1,0 +1,173 @@
+title: "Protein AI Platform — Complete Demo"
+base_url: "http://localhost:8050"  # Override at runtime with: --base-url https://your-host:port
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "af_heart"
+
+steps:
+  # ─── INTRO: Projects ───────────────────────────────────────────
+  - action: navigate
+    url: /dashboard/projects
+    narration: "Welcome to the Protein AI Platform. A self-hosted research workbench for protein engineering and drug discovery. Every analysis lives inside a project."
+    wait_for: "body"
+    duration_override: 6.0
+
+  - action: scroll
+    distance: 80
+    narration: "Here we have the MtrA supramolecular assembly project, an electron-transfer protein complex under active investigation."
+    duration_override: 4.5
+
+  # ─── STABILITY: Live Prediction ─────────────────────────────────
+  - action: navigate
+    url: /dashboard/stability/predict
+    narration: "Let's characterize our target protein. The stability module predicts thermostability, solubility, and six physicochemical properties from the amino acid sequence alone."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: type
+    selector: "#sequence"
+    text: "MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALPDAQFEVVHSLAKWKRQTLGQHDFSAGEGLYTHMKALRPDEDRLSPLHSVYVDQWDWERVMGDGERQFSTLKSTVEAIWAGIKATEAAVSEEFGLAPFLPDQIHFVHSQELLSRYPDLDAKGRERAIAKDLGAVFLVGIGGKLSDGHRHDVRAPDYDDWSTPSELGHAGLNGDILVWNPVLEDAFELSSMGIRVDADTLKHQLALTGDEDRLELEWHQALLRGEMPQTIGGGIGQSRLTMLLLQLPHIGQVQAGVWPAAVRESVPSLL"
+    narration: "We paste a three-hundred-residue enzyme sequence. This takes under a second, no GPU needed."
+    highlight: "#sequence"
+    duration_override: 5.0
+
+  - action: click
+    selector: "button[type='submit']"
+    narration: "Hit Predict."
+    highlight: "button[type='submit']"
+    duration_override: 2.0
+
+  - action: wait
+    wait_seconds: 2.0
+    narration: "Melting temperature, solubility score, instability index, isoelectric point, hydropathicity, and aromaticity. All computed instantly."
+
+  - action: screenshot
+    narration: "The protein is classified as stable with a melting temperature above sixty degrees. A strong starting point for engineering."
+    duration_override: 5.0
+
+  # ─── REDOX: Real Completed Jobs ─────────────────────────────────
+  - action: navigate
+    url: /dashboard/redox/jobs
+    narration: "Now the redox potential tuning module. This is where we engineer electron-transfer proteins. Two completed scans are already visible, each with forty-four mutations analyzed."
+    wait_for: "body"
+    duration_override: 5.5
+
+  - action: click
+    selector: "a[href*='redox/jobs/']"
+    narration: "Let's inspect the results. The pipeline ran six steps: heme detection, mutation generation, fitness filtering, structure prediction, electrostatics, and variant ranking."
+    highlight: "a[href*='redox/jobs/']"
+    duration_override: 5.5
+
+  - action: wait
+    wait_seconds: 2.0
+    narration: "Every variant is ranked by its predicted redox potential shift in millivolts. Researchers use this to fine-tune electron transfer chains."
+
+  - action: screenshot
+    narration: "Forty-four variants analyzed end to end. Each row shows the mutation label, predicted shift, structure confidence, and fitness score."
+    duration_override: 5.0
+
+  - action: scroll
+    distance: 400
+    narration: "Scroll through the full ranking. The conservative strategy focused on residues near the heme cofactor for maximum impact on redox potential."
+    duration_override: 4.5
+
+  # ─── REDOX: New Scan Form ───────────────────────────────────────
+  - action: navigate
+    url: /dashboard/redox/new
+    narration: "Starting a new scan is straightforward. Upload a PDB structure, set the target potential shift, choose a mutation strategy, and select the structure prediction method."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: scroll
+    distance: 400
+    narration: "Configure pH, maximum mutations, and the structure method. ESMFold runs locally in seconds. AlphaFold provides higher accuracy when time permits."
+    duration_override: 4.5
+
+  # ─── DOCKING: Molecular Screening ───────────────────────────────
+  - action: navigate
+    url: /dashboard/docking/jobs
+    narration: "The molecular docking module screens small molecules against protein targets. Two engines are available: AutoDock Vina for speed and Gnina for deep-learning-enhanced scoring."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: navigate
+    url: /dashboard/docking/screening
+    narration: "Virtual screening tests entire compound libraries in batch. Each pose is validated with PoseBusters to filter out physically implausible binding modes."
+    wait_for: "body"
+    duration_override: 4.5
+
+  # ─── ADMET: Drug Properties ─────────────────────────────────────
+  - action: navigate
+    url: /dashboard/admet/predict
+    narration: "After docking, we check ADMET properties. Enter a SMILES string to predict how a molecule is absorbed, distributed, metabolized, excreted, and whether it shows toxicity signals."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: screenshot
+    narration: "Paste multiple compounds for batch screening. The results flag drug-likeness violations using Lipinski, QED, and Veber rules."
+    duration_override: 4.0
+
+  # ─── PROTEIN JOBS & GALLERY ─────────────────────────────────────
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "The protein design module manages structure prediction jobs across eight models: AlphaFold, ESMFold, Boltz-2, Chai-1, AlphaFold3, OpenFold3, and more."
+    wait_for: "body"
+    duration_override: 5.0
+
+  - action: navigate
+    url: /dashboard/protein/gallery
+    narration: "Completed predictions appear in the structure gallery as interactive 3D cards with confidence scores color-coded by the AlphaFold pLDDT scale."
+    wait_for: "body"
+    duration_override: 4.5
+
+  # ─── EVALUATION ─────────────────────────────────────────────────
+  - action: navigate
+    url: /dashboard/evaluation/overview
+    narration: "The evaluation dashboard integrates MLflow for experiment tracking. Compare prediction accuracy, sequence diversity, and structural quality metrics across runs."
+    wait_for: "body"
+    duration_override: 4.5
+
+  # ─── PLATFORM RAPID TOUR ───────────────────────────────────────
+  - action: navigate
+    url: /dashboard/protein/compare
+    narration: "Compare variants side by side with 3D structure overlays and mutation diff tables."
+    wait_for: "body"
+    duration_override: 3.0
+
+  - action: navigate
+    url: /dashboard/msa/jobs
+    narration: "Generate multiple sequence alignments to improve prediction accuracy."
+    wait_for: "body"
+    duration_override: 3.0
+
+  - action: navigate
+    url: /dashboard/proteinmpnn/jobs
+    narration: "Design new sequences for existing backbones with ProteinMPNN inverse folding."
+    wait_for: "body"
+    duration_override: 3.0
+
+  - action: navigate
+    url: /dashboard/ppdock/jobs
+    narration: "Predict protein-protein interactions and complex assemblies."
+    wait_for: "body"
+    duration_override: 3.0
+
+  - action: navigate
+    url: /dashboard/pipeline/list
+    narration: "Chain multiple analysis steps into automated pipelines. Fold, dock, score, all in sequence."
+    wait_for: "body"
+    duration_override: 3.5
+
+  # ─── COPILOT ────────────────────────────────────────────────────
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "And the AI Copilot is always here. One hundred and forty tools accessible through natural language. Ask it to predict a structure, dock a ligand, or run an entire pipeline."
+    wait_for: "body"
+    duration_override: 5.5
+
+  # ─── CLOSING ────────────────────────────────────────────────────
+  - action: navigate
+    url: /dashboard/projects
+    narration: "From sequence to drug candidate. Structure prediction, stability analysis, redox engineering, molecular docking, and ADMET screening. The Protein AI Platform. Self-hosted. Open. Ready for your next discovery."
+    wait_for: "body"
+    duration_override: 7.0

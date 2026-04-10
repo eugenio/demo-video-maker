@@ -130,7 +130,9 @@ def record(
     }
     backend = backend_map[tts]()
     click.echo(f"Generating narration ({tts} backend)...")
-    manifest = generate_narration(manifest, work_dir / "audio", backend=backend)
+    manifest = generate_narration(
+        manifest, work_dir / "audio", backend=backend, fixed_durations=use_clips,
+    )
 
     # 4. Stitch final video
     click.echo("Stitching video...")
