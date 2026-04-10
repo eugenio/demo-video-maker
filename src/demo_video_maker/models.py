@@ -67,9 +67,9 @@ class CursorConfig(BaseModel):
 
     enabled: bool = True
     color: str = "#ef4444"
-    size: int = 20
+    size: int = 48
     click_ring_color: str = "#3b82f6"
-    click_ring_size: int = 40
+    click_ring_size: int = 80
     trail: bool = True
 
 

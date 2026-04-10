@@ -86,6 +86,63 @@ async def _remove_highlight(page: Page, selector: str) -> None:
     }})()""")
 
 
+_INJECT_CURSOR_JS = """() => {
+    if (document.getElementById('__demo_cursor')) return;
+    const cursor = document.createElement('div');
+    cursor.id = '__demo_cursor';
+    Object.assign(cursor.style, {
+        position: 'fixed',
+        width: '48px',
+        height: '48px',
+        borderRadius: '50%',
+        background: 'radial-gradient(circle, rgba(239,68,68,0.95) 0%, rgba(239,68,68,0.5) 50%, transparent 70%)',
+        border: '3px solid rgba(255,255,255,0.9)',
+        boxShadow: '0 0 16px rgba(239,68,68,0.6), 0 4px 8px rgba(0,0,0,0.4)',
+        pointerEvents: 'none',
+        zIndex: '2147483647',
+        transform: 'translate(-50%, -50%)',
+        transition: 'left 0.3s ease, top 0.3s ease, transform 0.15s ease',
+        display: 'none',
+    });
+    document.body.appendChild(cursor);
+}"""
+
+
+async def _show_cursor_at(page: Page, x: int, y: int, *, clicked: bool = False) -> None:
+    """Position the injected DOM cursor at the given viewport coordinates.
+
+    Args:
+        page: Playwright page instance.
+        x: Viewport X coordinate.
+        y: Viewport Y coordinate.
+        clicked: If True, show a click-pulse animation.
+    """
+    await page.evaluate(_INJECT_CURSOR_JS)
+    scale = "scale(1.6)" if clicked else "scale(1)"
+    await page.evaluate(f"""() => {{
+        const c = document.getElementById('__demo_cursor');
+        if (!c) return;
+        c.style.display = 'block';
+        c.style.left = '{x}px';
+        c.style.top = '{y}px';
+        c.style.transform = 'translate(-50%, -50%) {scale}';
+    }}""")
+    if clicked:
+        await asyncio.sleep(0.15)
+        await page.evaluate("""() => {
+            const c = document.getElementById('__demo_cursor');
+            if (c) c.style.transform = 'translate(-50%, -50%) scale(1)';
+        }""")
+
+
+async def _hide_cursor(page: Page) -> None:
+    """Hide the injected DOM cursor."""
+    await page.evaluate("""() => {
+        const c = document.getElementById('__demo_cursor');
+        if (c) c.style.display = 'none';
+    }""")
+
+
 async def record_scenario(
     scenario: Scenario,
     output_dir: Path,
@@ -114,11 +171,29 @@ async def record_scenario(
         browser = await p.chromium.launch(headless=headless)
         context = await browser.new_context(
             viewport={"width": scenario.resolution[0], "height": scenario.resolution[1]},
+            ignore_https_errors=True,
         )
         page = await context.new_page()
 
         for i, step in enumerate(scenario.steps):
             logger.info("Step %d/%d: %s", i + 1, len(scenario.steps), step.action.value)
+
+            # Determine target selector for cursor positioning (before action)
+            cursor_selector = step.selector or step.highlight
+            cursor_on_target = step.action in {
+                ActionType.CLICK,
+                ActionType.HOVER,
+                ActionType.TYPE,
+            }
+
+            # Show cursor moving toward the target BEFORE executing the action
+            if cursor_on_target and cursor_selector:
+                box = await page.locator(cursor_selector).bounding_box()
+                if box:
+                    cx = int(box["x"] + box["width"] / 2)
+                    cy = int(box["y"] + box["height"] / 2)
+                    await _show_cursor_at(page, cx, cy)
+                    await asyncio.sleep(0.2)
 
             await _execute_step(page, step, base_url)
 
@@ -131,6 +206,11 @@ async def record_scenario(
                         int(box["x"] + box["width"] / 2),
                         int(box["y"] + box["height"] / 2),
                     )
+                    await _show_cursor_at(
+                        page, click_position[0], click_position[1], clicked=True,
+                    )
+            elif step.action in {ActionType.NAVIGATE, ActionType.SCREENSHOT}:
+                await _hide_cursor(page)
 
             if step.highlight:
                 await _apply_highlight(page, step.highlight)
