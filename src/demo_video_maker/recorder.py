@@ -37,11 +37,11 @@ async def _execute_step(page: Page, step: Step, base_url: str) -> None:
         case ActionType.SCROLL:
             if step.selector:
                 await page.evaluate(
-                    f"document.querySelector('{step.selector}')"
-                    f".scrollBy(0, {step.distance})"
+                    "(args) => document.querySelector(args.sel).scrollBy(0, args.d)",
+                    {"sel": step.selector, "d": step.distance},
                 )
             else:
-                await page.evaluate(f"window.scrollBy(0, {step.distance})")
+                await page.evaluate("(d) => window.scrollBy(0, d)", step.distance)
         case ActionType.WAIT:
             await asyncio.sleep(step.wait_seconds)
         case ActionType.SCREENSHOT:
@@ -58,16 +58,16 @@ async def _apply_highlight(page: Page, selector: str) -> None:
         page: Playwright page instance.
         selector: CSS selector for the element to highlight.
     """
-    await page.evaluate(f"""(() => {{
-        const el = document.querySelector('{selector}');
-        if (el) {{
+    await page.evaluate("""(sel) => {
+        const el = document.querySelector(sel);
+        if (el) {
             el.dataset.origOutline = el.style.outline;
             el.dataset.origOutlineOffset = el.style.outlineOffset;
             el.style.outline = '3px solid #4f86f7';
             el.style.outlineOffset = '4px';
             el.style.transition = 'outline 0.3s ease';
-        }}
-    }})()""")
+        }
+    }""", selector)
 
 
 async def _remove_highlight(page: Page, selector: str) -> None:
@@ -77,13 +77,13 @@ async def _remove_highlight(page: Page, selector: str) -> None:
         page: Playwright page instance.
         selector: CSS selector for the highlighted element.
     """
-    await page.evaluate(f"""(() => {{
-        const el = document.querySelector('{selector}');
-        if (el) {{
+    await page.evaluate("""(sel) => {
+        const el = document.querySelector(sel);
+        if (el) {
             el.style.outline = el.dataset.origOutline || '';
             el.style.outlineOffset = el.dataset.origOutlineOffset || '';
-        }}
-    }})()""")
+        }
+    }""", selector)
 
 
 _INJECT_CURSOR_JS = """() => {
