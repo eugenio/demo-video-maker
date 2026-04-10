@@ -1,0 +1,94 @@
+title: "Protein AI Platform -- Full Feature Demo"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "af_heart"
+
+steps:
+  # --- Landing & Dashboard ---
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "Welcome to the Protein AI Platform. The job dashboard gives you a real-time view of all protein design and structure prediction runs."
+    wait_for: "body"
+
+  - action: scroll
+    distance: 300
+    narration: "Each job shows its status, progress percentage, model used, and estimated completion time. Color-coded indicators make status visible at a glance."
+
+  # --- Protein Gallery ---
+  - action: navigate
+    url: /dashboard/protein/gallery
+    narration: "The gallery displays generated protein structures as visual cards. Each card shows the 3D thumbnail, pLDDT confidence score, and key metrics."
+    wait_for: "body"
+
+  - action: scroll
+    distance: 400
+    narration: "Scroll through your results. Cards are color-coded by confidence: blue for high reliability, yellow for moderate, and orange for regions that need attention."
+
+  # --- Protein Catalog ---
+  - action: navigate
+    url: /dashboard/protein/catalog
+    narration: "The protein catalog provides a searchable database of all structures in the system, with filtering by model, confidence, and date."
+    wait_for: "body"
+
+  # --- Variant Comparison ---
+  - action: navigate
+    url: /dashboard/protein/compare
+    narration: "The comparison tool lets you evaluate multiple protein designs side by side, overlaying structures in the 3D viewer and highlighting mutations."
+    wait_for: "body"
+
+  # --- Molecular Docking ---
+  - action: navigate
+    url: /dashboard/docking/jobs
+    narration: "The molecular docking module enables virtual screening of small molecules against your protein targets using AutoDock Vina and Gnina engines."
+    wait_for: "body"
+
+  - action: scroll
+    distance: 300
+    narration: "Docking jobs show binding affinity scores, pose quality metrics, and PoseBusters validation status for each ligand-receptor pair."
+
+  # --- Redox Scanning ---
+  - action: navigate
+    url: /dashboard/redox/jobs
+    narration: "The redox potential tuning module scans heme-binding proteins for mutations that shift their electrochemical properties."
+    wait_for: "body"
+
+  # --- Stability Prediction ---
+  - action: navigate
+    url: /dashboard/stability/predict
+    narration: "Stability prediction calculates thermostability, isoelectric point, solubility, and runs mutation scanning to find stabilizing variants."
+    wait_for: "body"
+
+  # --- ADMET & Drug-Likeness ---
+  - action: navigate
+    url: /dashboard/admet
+    narration: "The ADMET module predicts absorption, distribution, metabolism, excretion, and toxicity properties for drug candidates."
+    wait_for: "body"
+
+  # --- MSA ---
+  - action: navigate
+    url: /dashboard/msa
+    narration: "Multiple sequence alignment generates evolutionary profiles used to improve structure prediction accuracy."
+    wait_for: "body"
+
+  # --- Pipeline Builder ---
+  - action: navigate
+    url: /dashboard/pipeline
+    narration: "The pipeline builder lets you chain multiple analysis steps together. For example: fold with AlphaFold, then dock a ligand, then score drug-likeness."
+    wait_for: "body"
+
+  # --- Evaluation Dashboard ---
+  - action: navigate
+    url: /dashboard/evaluation/overview
+    narration: "The evaluation dashboard integrates MLflow metrics and benchmark results for tracking model performance over time."
+    wait_for: "body"
+
+  # --- Copilot ---
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "The AI Copilot is always available in the bottom-right corner. It connects to over 140 tools and can run any analysis through natural language."
+    wait_for: "body"
+
+  # --- Closing ---
+  - action: screenshot
+    narration: "That covers the core platform. From structure prediction to docking to drug discovery, everything runs from a single unified interface."

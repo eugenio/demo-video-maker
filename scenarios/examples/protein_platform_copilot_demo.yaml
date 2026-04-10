@@ -1,0 +1,49 @@
+title: "Protein AI Platform -- Copilot AI Assistant Demo"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1920, 1080]
+pause_between_steps: 3.0
+voice: "af_heart"
+
+steps:
+  - action: navigate
+    url: /dashboard/protein/jobs
+    narration: "The Protein AI Platform includes an AI Copilot powered by a large language model. Let's see how it works."
+    wait_for: "body"
+
+  - action: click
+    selector: ".copilot-toggle, [data-copilot-toggle]"
+    narration: "Click the Copilot button in the bottom-right corner to open the chat panel."
+    highlight: ".copilot-toggle, [data-copilot-toggle]"
+
+  - action: wait
+    wait_seconds: 2.0
+    narration: "The Copilot connects to over 140 tools through the MCP protocol. It can predict structures, dock ligands, and analyze proteins."
+
+  - action: type
+    selector: ".copilot-input, textarea[data-copilot]"
+    text: "Predict the structure of MKTAYIAKQRQISFVKSHFSRQ using ESMFold"
+    narration: "Type a natural language request. The Copilot understands protein sequences and knows which tool to use."
+
+  - action: click
+    selector: ".copilot-send, button[data-send]"
+    narration: "Send the message. The Copilot will call the ESMFold tool, wait for results, and display the 3D structure."
+    highlight: ".copilot-send, button[data-send]"
+
+  - action: wait
+    wait_seconds: 5.0
+    narration: "The Copilot runs an agentic loop: it selects tools, executes them, and feeds results back to the language model for interpretation."
+
+  - action: screenshot
+    narration: "Results appear inline with confidence scores and an interactive 3D viewer. You can ask follow-up questions to dig deeper."
+
+  - action: type
+    selector: ".copilot-input, textarea[data-copilot]"
+    text: "Now dock aspirin against this structure and check its drug-likeness"
+    narration: "Chain multiple analyses in a single conversation. The Copilot remembers context from previous steps."
+
+  - action: wait
+    wait_seconds: 3.0
+    narration: "This multi-step workflow would normally require switching between modules. The Copilot handles the orchestration automatically."
+
+  - action: screenshot
+    narration: "The Copilot supports five languages and works with any OpenAI-compatible backend or Anthropic directly. A powerful research assistant at your fingertips."

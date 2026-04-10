@@ -25,9 +25,17 @@ settings.local.json
 
 # Demo build artifacts
 .demo_build/
+.gif_work/
 *.mp4
 *.mp3
 *.wav
+*.gif
+narration.json
+subtitles.srt
+subtitles.vtt
+
+# Voice samples (local test binaries)
+voice_samples/
 
 # Test/coverage
 .pytest_cache/

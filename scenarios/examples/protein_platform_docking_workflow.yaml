@@ -1,0 +1,47 @@
+title: "Protein AI Platform -- Docking Workflow Demo"
+base_url: "https://protein-dashboard.tail301d0a.ts.net:8050"
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "af_heart"
+
+steps:
+  - action: navigate
+    url: /dashboard/protein/gallery
+    narration: "Start from the protein gallery. We will pick a target structure and dock a small molecule against it."
+    wait_for: "body"
+
+  - action: click
+    selector: ".protein-card:first-child"
+    narration: "Select a protein target. This card shows the structure's confidence score and predicted fold."
+    highlight: ".protein-card:first-child"
+
+  - action: navigate
+    url: /dashboard/docking/jobs
+    narration: "Navigate to the docking module. Here you can submit new docking jobs or monitor existing ones."
+    wait_for: "body"
+
+  - action: scroll
+    distance: 200
+    narration: "The docking queue shows running and completed jobs with binding affinity scores and pose counts."
+
+  - action: navigate
+    url: /dashboard/docking/results
+    narration: "Completed docking results show the binding pose in 3D, affinity score in kcal per mol, and PoseBusters validation."
+    wait_for: "body"
+
+  - action: scroll
+    distance: 300
+    narration: "Scroll to see the full results table. Each ligand is ranked by binding affinity with pass or fail quality indicators."
+
+  - action: navigate
+    url: /dashboard/admet
+    narration: "After docking, check the ADMET properties of your top compounds. This predicts how the molecule will behave in the body."
+    wait_for: "body"
+
+  - action: navigate
+    url: /dashboard/protein/compare
+    narration: "Finally, compare the protein before and after ligand binding. The overlay view highlights structural changes."
+    wait_for: "body"
+
+  - action: screenshot
+    narration: "This end-to-end workflow takes you from target selection through docking to drug candidate evaluation, all within the same platform."
