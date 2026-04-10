@@ -1,0 +1,40 @@
+title: "Data Pipeline Monitoring"
+base_url: "http://localhost:9090"
+resolution: [1920, 1080]
+pause_between_steps: 2.0
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /pipelines
+    narration: "The pipeline overview shows all active, queued, and completed data processing jobs at a glance."
+    wait_for: ".pipeline-list"
+
+  - action: click
+    selector: ".pipeline-card.active:first-child"
+    narration: "Select a running pipeline to monitor its progress through each processing stage."
+    highlight: ".pipeline-card.active:first-child"
+
+  - action: navigate
+    url: /pipelines/1/stages
+    narration: "The stage view displays each transformation step with input and output record counts, duration, and error rate."
+    wait_for: ".stage-flow"
+
+  - action: click
+    selector: ".stage-node[data-stage='transform']"
+    narration: "Click a stage to drill into its logs, resource usage, and data quality metrics."
+    highlight: ".stage-node[data-stage='transform']"
+
+  - action: scroll
+    distance: 300
+    narration: "Detailed metrics show throughput, latency percentiles, and memory consumption over time."
+
+  - action: navigate
+    url: /pipelines/1/alerts
+    narration: "The alerts tab lists any data quality violations, schema drift, or SLA breaches detected during execution."
+    wait_for: ".alert-list"
+
+  - action: navigate
+    url: /pipelines/schedules
+    narration: "Configure pipeline schedules with cron expressions, dependency chains, and retry policies."
+    wait_for: ".schedule-table"

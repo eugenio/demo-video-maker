@@ -1,0 +1,40 @@
+title: "Admin Dashboard Tour"
+base_url: "http://localhost:8080"
+resolution: [1920, 1080]
+pause_between_steps: 2.0
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /admin
+    narration: "The admin dashboard provides a centralized view of system health, user activity, and key metrics."
+    wait_for: ".dashboard-grid"
+
+  - action: scroll
+    distance: 400
+    narration: "Scroll down to see real-time charts showing traffic patterns and resource utilization."
+
+  - action: click
+    selector: "[data-nav='users']"
+    narration: "The user management section lets you search, filter, and manage all accounts."
+    highlight: "[data-nav='users']"
+
+  - action: type
+    selector: "#user-search"
+    text: "john.doe"
+    narration: "Use the search bar to find specific users by name, email, or role."
+
+  - action: click
+    selector: ".user-row:first-child"
+    narration: "Click a user to view their profile, activity log, and permission settings."
+    highlight: ".user-row:first-child"
+
+  - action: navigate
+    url: /admin/settings
+    narration: "System settings control authentication policies, email templates, and integration endpoints."
+    wait_for: ".settings-panel"
+
+  - action: navigate
+    url: /admin/logs
+    narration: "The audit log records every administrative action with timestamps and actor information."
+    wait_for: ".log-table"

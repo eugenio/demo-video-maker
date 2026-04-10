@@ -1,0 +1,46 @@
+title: "E-Commerce Checkout Flow"
+base_url: "http://localhost:4000"
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /products
+    narration: "Start by browsing the product catalog. Each card shows price, rating, and availability."
+    wait_for: ".product-grid"
+
+  - action: click
+    selector: ".product-card:first-child"
+    narration: "Click a product to view its details, reviews, and available variants."
+    highlight: ".product-card:first-child"
+
+  - action: click
+    selector: ".add-to-cart"
+    narration: "Add the item to your cart. The cart icon updates with the item count."
+    highlight: ".add-to-cart"
+
+  - action: navigate
+    url: /cart
+    narration: "The shopping cart shows all selected items with quantity controls and a running total."
+    wait_for: ".cart-items"
+
+  - action: click
+    selector: ".checkout-btn"
+    narration: "Proceed to checkout to enter shipping and payment information."
+    highlight: ".checkout-btn"
+
+  - action: navigate
+    url: /checkout/payment
+    narration: "The payment form supports credit cards, PayPal, and bank transfers with real-time validation."
+    wait_for: ".payment-form"
+
+  - action: click
+    selector: ".place-order"
+    narration: "Place the order. You will receive a confirmation email with tracking details."
+    highlight: ".place-order"
+
+  - action: navigate
+    url: /orders/confirmation
+    narration: "The confirmation page displays your order number, estimated delivery, and a summary of purchased items."
+    wait_for: ".order-confirmation"

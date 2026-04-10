@@ -1,0 +1,45 @@
+title: "SaaS Product Onboarding Flow"
+base_url: "http://localhost:3000"
+resolution: [1920, 1080]
+pause_between_steps: 2.0
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /
+    narration: "Welcome to our platform. Let's walk through the onboarding flow that new users experience."
+    wait_for: "body"
+
+  - action: click
+    selector: ".cta-signup"
+    narration: "Click the sign-up button to begin creating your account."
+    highlight: ".cta-signup"
+
+  - action: type
+    selector: "#email"
+    text: "demo@example.com"
+    narration: "Enter your email address in the registration form."
+
+  - action: type
+    selector: "#password"
+    text: "SecureDemo123!"
+    narration: "Choose a strong password that meets the security requirements."
+
+  - action: click
+    selector: "#submit-btn"
+    narration: "Submit the form to create your account and proceed to the dashboard."
+    highlight: "#submit-btn"
+
+  - action: navigate
+    url: /onboarding/setup
+    narration: "The setup wizard guides you through initial configuration with sensible defaults."
+    wait_for: ".wizard-container"
+
+  - action: click
+    selector: ".wizard-next"
+    narration: "Complete each step of the wizard to customize your workspace."
+
+  - action: navigate
+    url: /dashboard
+    narration: "After setup, you arrive at your personalized dashboard, ready to start working."
+    wait_for: "body"

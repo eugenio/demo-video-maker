@@ -12,7 +12,13 @@ from demo_video_maker.cursor import apply_cursors_to_manifest
 from demo_video_maker.gif import generate_gif
 from demo_video_maker.models import CursorConfig, Manifest, OutputConfig, Scenario
 from demo_video_maker.narration_export import export_narration_json
-from demo_video_maker.narrator import EdgeTTS, OpenAITTS, SilentBackend, generate_narration
+from demo_video_maker.narrator import (
+    EdgeTTS,
+    KokoroTTS,
+    OpenAITTS,
+    SilentBackend,
+    generate_narration,
+)
 from demo_video_maker.recorder import record_scenario
 from demo_video_maker.stitcher import stitch_video
 from demo_video_maker.subtitles import generate_srt, generate_vtt
@@ -66,7 +72,7 @@ def cli(*, verbose: bool) -> None:
 @click.argument("scenario_file", type=click.Path(exists=True, path_type=Path))
 @click.option("-o", "--output", type=click.Path(path_type=Path), default="demo.mp4")
 @click.option("--base-url", default=None, help="Override scenario base_url")
-@click.option("--tts", type=click.Choice(["openai", "edge", "silent"]), default="edge")
+@click.option("--tts", type=click.Choice(["kokoro", "openai", "edge", "silent"]), default="kokoro")
 @click.option("--voice", default=None, help="TTS voice name")
 @click.option("--headed", is_flag=True, help="Show browser window during recording")
 @click.option("--work-dir", type=click.Path(path_type=Path), default=None)
@@ -111,8 +117,9 @@ def record(
 
     # 3. Generate narration
     backend_map = {
+        "kokoro": lambda: KokoroTTS(voice=voice or "af_heart"),
         "openai": lambda: OpenAITTS(voice=voice or scenario.voice),
-        "edge": lambda: EdgeTTS(voice=voice or "en-US-GuyNeural"),
+        "edge": lambda: EdgeTTS(voice=voice or "en-US-AvaMultilingualNeural"),
         "silent": lambda: SilentBackend(),
     }
     backend = backend_map[tts]()
@@ -165,7 +172,7 @@ def capture(
 @cli.command()
 @click.argument("manifest_file", type=click.Path(exists=True, path_type=Path))
 @click.option("-o", "--output", type=click.Path(path_type=Path), default="demo.mp4")
-@click.option("--tts", type=click.Choice(["openai", "edge", "silent"]), default="edge")
+@click.option("--tts", type=click.Choice(["kokoro", "openai", "edge", "silent"]), default="kokoro")
 @click.option("--voice", default=None, help="TTS voice name")
 @click.option("--gif", is_flag=True, help="Also generate GIF preview")
 @click.option("--html", is_flag=True, help="Also generate HTML tutorial")
@@ -183,8 +190,9 @@ def narrate(
     work_dir = manifest_file.parent
 
     backend_map = {
+        "kokoro": lambda: KokoroTTS(voice=voice or "af_heart"),
         "openai": lambda: OpenAITTS(voice=voice or "onyx"),
-        "edge": lambda: EdgeTTS(voice=voice or "en-US-GuyNeural"),
+        "edge": lambda: EdgeTTS(voice=voice or "en-US-AvaMultilingualNeural"),
         "silent": lambda: SilentBackend(),
     }
     backend = backend_map[tts]()

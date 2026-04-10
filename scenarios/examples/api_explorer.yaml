@@ -1,0 +1,39 @@
+title: "API Explorer and Documentation"
+base_url: "http://localhost:8000"
+resolution: [1920, 1080]
+pause_between_steps: 2.5
+voice: "onyx"
+
+steps:
+  - action: navigate
+    url: /docs
+    narration: "The interactive API documentation is auto-generated from OpenAPI specs and lets you test endpoints directly."
+    wait_for: ".swagger-ui"
+
+  - action: click
+    selector: "#operations-tag-users"
+    narration: "Expand the Users section to see all available endpoints for user management."
+    highlight: "#operations-tag-users"
+
+  - action: click
+    selector: "#operations-users-get_users .opblock-summary"
+    narration: "Click an endpoint to reveal its parameters, request body schema, and response examples."
+
+  - action: click
+    selector: ".try-out__btn"
+    narration: "Hit Try it out to send a live request. The response appears below with status code and headers."
+    highlight: ".try-out__btn"
+
+  - action: click
+    selector: ".execute"
+    narration: "Execute the request. The curl command is shown so you can reproduce it from your terminal."
+    highlight: ".execute"
+
+  - action: scroll
+    distance: 600
+    narration: "Scroll down to inspect the response body, headers, and any validation errors."
+
+  - action: navigate
+    url: /docs#/authentication
+    narration: "The authentication section documents token-based auth, API key usage, and OAuth2 flows."
+    wait_for: "body"
