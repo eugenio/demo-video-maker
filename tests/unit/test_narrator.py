@@ -20,6 +20,7 @@ class TestSilentBackend:
 
     @patch("demo_video_maker.narrator.subprocess.run")
     def test_synthesize_calls_ffmpeg(self, mock_run: MagicMock, tmp_path: Path) -> None:
+        """Verify SilentBackend invokes ffmpeg to produce a silence file."""
         backend = SilentBackend()
         output = tmp_path / "silence.mp3"
         backend.synthesize("Hello world test", output)
@@ -35,6 +36,7 @@ class TestEdgeTTS:
 
     @patch("demo_video_maker.narrator.subprocess.run")
     def test_synthesize_calls_edge_tts(self, mock_run: MagicMock, tmp_path: Path) -> None:
+        """Verify EdgeTTS invokes the edge-tts CLI with the correct voice."""
         backend = EdgeTTS(voice="en-US-AriaNeural")
         output = tmp_path / "speech.mp3"
         backend.synthesize("Test narration", output)
@@ -51,6 +53,7 @@ class TestKokoroTTS:
 
     @patch("demo_video_maker.narrator.subprocess.run")
     def test_synthesize_produces_mp3(self, mock_run: MagicMock, tmp_path: Path) -> None:
+        """Verify KokoroTTS creates audio via Kokoro and converts to mp3."""
         import array
 
         mock_kokoro_instance = MagicMock()
@@ -77,6 +80,7 @@ class TestKokoroTTS:
         assert cmd[0] == "ffmpeg"
 
     def test_default_voice_is_af_heart(self) -> None:
+        """Verify KokoroTTS defaults to af_heart voice at 1.0 speed."""
         backend = KokoroTTS()
         assert backend.voice == "af_heart"
         assert backend.speed == 1.0
@@ -90,6 +94,7 @@ class TestGenerateNarration:
     def test_generates_audio_for_steps_with_narration(
         self, mock_duration: MagicMock, tmp_path: Path
     ) -> None:
+        """Verify audio is generated only for steps that have narration text."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -111,6 +116,7 @@ class TestGenerateNarration:
     def test_fixed_durations_does_not_extend(
         self, mock_duration: MagicMock, tmp_path: Path
     ) -> None:
+        """Verify fixed_durations mode preserves original step duration."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -134,6 +140,7 @@ class TestPreGenerateAudio:
     def test_returns_audio_paths_and_durations(
         self, mock_duration: MagicMock, tmp_path: Path
     ) -> None:
+        """Verify pre_generate_audio returns paths and durations for narrated steps."""
         from demo_video_maker.models import Step
 
         steps = [
@@ -159,6 +166,7 @@ class TestPreGenerateAudio:
     def test_empty_narrations_skipped(
         self, mock_duration: MagicMock, tmp_path: Path
     ) -> None:
+        """Verify steps with empty narration produce no audio output."""
         from demo_video_maker.models import Step
 
         steps = [

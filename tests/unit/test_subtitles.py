@@ -17,15 +17,19 @@ class TestFormatSrtTime:
     """Tests for SRT timestamp formatting."""
 
     def test_zero(self) -> None:
+        """Verify zero seconds formats as all-zero SRT timestamp."""
         assert _format_srt_time(0.0) == "00:00:00,000"
 
     def test_seconds_and_millis(self) -> None:
+        """Verify fractional seconds are converted to milliseconds."""
         assert _format_srt_time(5.5) == "00:00:05,500"
 
     def test_minutes(self) -> None:
+        """Verify seconds exceeding 60 roll over into minutes."""
         assert _format_srt_time(125.25) == "00:02:05,250"
 
     def test_hours(self) -> None:
+        """Verify seconds exceeding 3600 roll over into hours."""
         assert _format_srt_time(3661.0) == "01:01:01,000"
 
 
@@ -33,9 +37,11 @@ class TestFormatVttTime:
     """Tests for VTT timestamp formatting."""
 
     def test_zero(self) -> None:
+        """Verify zero seconds formats as all-zero VTT timestamp."""
         assert _format_vtt_time(0.0) == "00:00:00.000"
 
     def test_uses_dot_separator(self) -> None:
+        """Verify VTT timestamps use dot instead of comma as separator."""
         result = _format_vtt_time(5.5)
         assert "." in result
         assert "," not in result
@@ -45,6 +51,7 @@ class TestGenerateSrt:
     """Tests for SRT file generation."""
 
     def test_generates_srt_with_narration(self, tmp_path: Path) -> None:
+        """Verify SRT output contains indexed cues with correct timestamps."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -65,6 +72,7 @@ class TestGenerateSrt:
         assert "00:00:02,000 --> 00:00:05,000" in content
 
     def test_skips_steps_without_narration(self, tmp_path: Path) -> None:
+        """Verify steps with empty narration are omitted from the SRT."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -81,6 +89,7 @@ class TestGenerateSrt:
         assert content.startswith("1\n")
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
+        """Verify an empty manifest produces an empty SRT file."""
         manifest = Manifest(title="Empty", steps=[])
         output = tmp_path / "test.srt"
         generate_srt(manifest, output)
@@ -91,6 +100,7 @@ class TestGenerateVtt:
     """Tests for VTT file generation."""
 
     def test_starts_with_webvtt_header(self, tmp_path: Path) -> None:
+        """Verify VTT output begins with the WEBVTT header."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -104,6 +114,7 @@ class TestGenerateVtt:
         assert content.startswith("WEBVTT\n")
 
     def test_uses_dot_separator(self, tmp_path: Path) -> None:
+        """Verify VTT cue timestamps use dot separators for milliseconds."""
         manifest = Manifest(
             title="Test",
             steps=[

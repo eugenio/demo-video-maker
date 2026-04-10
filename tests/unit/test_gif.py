@@ -35,6 +35,7 @@ class TestGenerateGif:
 
     @patch("demo_video_maker.gif.subprocess.run")
     def test_creates_concat_file(self, mock_run: MagicMock, tmp_path: Path) -> None:
+        """Verify concat demuxer file is written with frame paths and durations."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -52,6 +53,7 @@ class TestGenerateGif:
 
     @patch("demo_video_maker.gif.subprocess.run")
     def test_custom_width(self, mock_run: MagicMock, tmp_path: Path) -> None:
+        """Verify custom width is passed to ffmpeg scale filter."""
         manifest = Manifest(
             title="Test",
             steps=[StepResult(index=0, frame_path="f.png", duration=1.0)],

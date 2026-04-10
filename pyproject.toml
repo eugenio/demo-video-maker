@@ -3,7 +3,8 @@ name = "demo-video-maker"
 version = "0.1.0"
 description = "Automated webapp demo video recorder: Playwright + TTS + FFmpeg"
 requires-python = ">=3.11"
-license = "MIT"
+license = "LicenseRef-Dual-NonCommercial-Commercial"
+license-files = ["LICENSE"]
 dependencies = [
     "playwright>=1.40",
     "pyyaml>=6.0",
@@ -12,10 +13,12 @@ dependencies = [
     "pydantic>=2.0",
     "kokoro-onnx>=0.4",
     "soundfile>=0.12",
+    "mcp>=1.6",
 ]
 
 [project.scripts]
 demo-video-maker = "demo_video_maker.cli:main"
+demo-video-maker-mcp = "demo_video_maker.mcp_server:main"
 
 [project.optional-dependencies]
 dev = [
@@ -44,6 +47,10 @@ ignore = ["S101", "S603", "S607"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "smoke: fast sanity checks (imports, registrations, basic signatures)",
+    "e2e: end-to-end tests (MCP client-server over stdio)",
+]
 
 [tool.mypy]
 python_version = "3.11"

@@ -37,6 +37,9 @@ subtitles.vtt
 # Voice samples (local test binaries)
 voice_samples/
 
+# MkDocs build output
+site/
+
 # Test/coverage
 .pytest_cache/
 htmlcov/

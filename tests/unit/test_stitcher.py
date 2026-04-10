@@ -13,6 +13,7 @@ class TestBuildConcatFile:
     """Tests for the _build_concat_file helper."""
 
     def test_creates_concat_file(self, tmp_path: Path) -> None:
+        """Verify concat file contains correct frame paths and durations."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -31,6 +32,7 @@ class TestBuildConcatFile:
         assert content.strip().endswith("step_001.png'")
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
+        """Verify an empty manifest produces an empty concat file."""
         manifest = Manifest(title="Empty", steps=[])
         concat_path = _build_concat_file(manifest, tmp_path)
         content = concat_path.read_text()
@@ -45,6 +47,7 @@ class TestStitchVideo:
     def test_stitches_video_without_audio(
         self, mock_merge: MagicMock, mock_run: MagicMock, tmp_path: Path
     ) -> None:
+        """Verify stitch_video calls ffmpeg to produce the output file."""
         manifest = Manifest(
             title="Test",
             steps=[

@@ -13,6 +13,7 @@ class TestExportNarrationJson:
     """Tests for narration JSON export."""
 
     def test_basic_export(self, tmp_path: Path) -> None:
+        """Verify export produces JSON with correct title, duration, and segment count."""
         manifest = Manifest(
             title="Demo",
             steps=[
@@ -30,6 +31,7 @@ class TestExportNarrationJson:
         assert len(data["segments"]) == 2
 
     def test_segment_timing(self, tmp_path: Path) -> None:
+        """Verify each segment has correct start, end, and duration in milliseconds."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -54,6 +56,7 @@ class TestExportNarrationJson:
         assert seg1["endMs"] == 5000
 
     def test_skips_steps_without_narration(self, tmp_path: Path) -> None:
+        """Verify steps with empty narration are excluded from segments."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -70,6 +73,7 @@ class TestExportNarrationJson:
         assert data["totalDurationMs"] == 5000
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
+        """Verify an empty manifest produces zero segments and zero duration."""
         manifest = Manifest(title="Empty", steps=[])
         output = tmp_path / "narration.json"
         export_narration_json(manifest, output)

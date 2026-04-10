@@ -86,6 +86,7 @@ def _encode_png(width: int, height: int, raw_rows: bytes | bytearray) -> bytes:
     """
 
     def _chunk(chunk_type: bytes, data: bytes) -> bytes:
+        """Wrap data in a PNG chunk with length, type, and CRC32."""
         c = chunk_type + data
         return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
 

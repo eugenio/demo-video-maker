@@ -12,6 +12,7 @@ class TestGenerateHtmlTutorial:
     """Tests for HTML tutorial generation."""
 
     def test_generates_valid_html(self, tmp_path: Path) -> None:
+        """Verify output is valid HTML with correct DOCTYPE and title."""
         manifest = Manifest(
             title="Test Demo",
             steps=[
@@ -34,6 +35,7 @@ class TestGenerateHtmlTutorial:
         assert "<title>Test Demo</title>" in content
 
     def test_contains_step_content(self, tmp_path: Path) -> None:
+        """Verify step narration and frame path appear in the HTML."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -52,6 +54,7 @@ class TestGenerateHtmlTutorial:
         assert "1 steps" in content
 
     def test_escapes_html_in_narration(self, tmp_path: Path) -> None:
+        """Verify HTML special characters in narration are escaped."""
         manifest = Manifest(
             title="XSS Test",
             steps=[
@@ -71,6 +74,7 @@ class TestGenerateHtmlTutorial:
         assert "&lt;script&gt;" in content
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
+        """Verify an empty manifest produces HTML showing zero steps."""
         manifest = Manifest(title="Empty", steps=[])
         output = tmp_path / "tutorial.html"
         generate_html_tutorial(manifest, output)
@@ -79,6 +83,7 @@ class TestGenerateHtmlTutorial:
         assert "0 steps" in content
 
     def test_has_lightbox(self, tmp_path: Path) -> None:
+        """Verify generated HTML includes lightbox markup."""
         manifest = Manifest(
             title="Test",
             steps=[

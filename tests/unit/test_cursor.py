@@ -19,12 +19,15 @@ class TestHexToRgba:
     """Tests for hex color conversion."""
 
     def test_basic_color(self) -> None:
+        """Verify basic hex color converts to correct RGBA bytes."""
         assert _hex_to_rgba("#ff0000", alpha=255) == b"\xff\x00\x00\xff"
 
     def test_with_alpha(self) -> None:
+        """Verify custom alpha value is encoded in the output."""
         assert _hex_to_rgba("#3b82f6", alpha=153) == b"\x3b\x82\xf6\x99"
 
     def test_strips_hash(self) -> None:
+        """Verify hex string without leading '#' is handled correctly."""
         assert _hex_to_rgba("ef4444", alpha=217) == b"\xef\x44\x44\xd9"
 
 
@@ -32,6 +35,7 @@ class TestCreateCursorPng:
     """Tests for cursor PNG generation."""
 
     def test_normal_cursor_is_valid_png(self) -> None:
+        """Verify normal cursor output starts with a valid PNG signature."""
         config = CursorConfig(color="#ff0000", size=48)
         data = _create_cursor_png(config, clicked=False)
 
@@ -39,6 +43,7 @@ class TestCreateCursorPng:
         assert len(data) > 100
 
     def test_clicked_cursor_is_larger(self) -> None:
+        """Verify clicked cursor PNG is larger than normal due to ring pixels."""
         config = CursorConfig(size=48, click_ring_size=80)
         normal = _create_cursor_png(config, clicked=False)
         clicked = _create_cursor_png(config, clicked=True)
@@ -47,6 +52,7 @@ class TestCreateCursorPng:
         assert len(clicked) > len(normal)
 
     def test_produces_rgba_pixels(self) -> None:
+        """Verify IHDR chunk declares RGBA color type (6)."""
         config = CursorConfig(color="#ff0000", size=20)
         data = _create_cursor_png(config, clicked=False)
 
@@ -60,6 +66,7 @@ class TestSaveCursorPng:
     """Tests for saving cursor PNGs to disk."""
 
     def test_creates_both_files(self, tmp_path: Path) -> None:
+        """Verify both normal and clicked cursor PNGs are written to disk."""
         config = CursorConfig()
         normal, clicked = save_cursor_png(config, tmp_path)
 
@@ -79,6 +86,7 @@ class TestOverlayCursorOnFrame:
     def test_calls_ffmpeg_with_centered_position(
         self, mock_run: MagicMock, tmp_path: Path,
     ) -> None:
+        """Verify ffmpeg overlay filter uses cursor-centered coordinates."""
         frame = tmp_path / "frame.png"
         cursor = tmp_path / "cursor.png"
         output = tmp_path / "output.png"
@@ -97,6 +105,7 @@ class TestApplyCursorsToManifest:
     """Tests for applying cursors to a manifest."""
 
     def test_skips_when_disabled(self) -> None:
+        """Verify manifest is returned unmodified when cursor is disabled."""
         config = CursorConfig(enabled=False)
         manifest = Manifest(
             title="Test",
@@ -112,6 +121,7 @@ class TestApplyCursorsToManifest:
     def test_applies_to_steps_with_click_position(
         self, mock_save: MagicMock, mock_overlay: MagicMock, tmp_path: Path,
     ) -> None:
+        """Verify overlay is called only for steps that have a click position."""
         mock_save.return_value = (tmp_path / "n.png", tmp_path / "c.png")
         mock_overlay.return_value = tmp_path / "out.png"
 

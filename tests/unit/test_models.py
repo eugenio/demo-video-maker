@@ -11,6 +11,7 @@ class TestStep:
     """Tests for the Step model."""
 
     def test_minimal_step(self) -> None:
+        """Verify Step with only required fields uses correct defaults."""
         step = Step(action=ActionType.NAVIGATE, url="/test")
         assert step.action == ActionType.NAVIGATE
         assert step.url == "/test"
@@ -18,6 +19,7 @@ class TestStep:
         assert step.highlight is None
 
     def test_full_step(self) -> None:
+        """Verify Step with all optional fields populated."""
         step = Step(
             action=ActionType.CLICK,
             selector=".btn",
@@ -33,12 +35,14 @@ class TestScenario:
     """Tests for the Scenario model."""
 
     def test_defaults(self) -> None:
+        """Verify Scenario default values for resolution, pause, and voice."""
         scenario = Scenario(title="Test", steps=[])
         assert scenario.resolution == (1920, 1080)
         assert scenario.pause_between_steps == 1.5
         assert scenario.voice == "onyx"
 
     def test_from_yaml(self, tmp_path: Path) -> None:
+        """Verify Scenario.from_yaml parses title, base_url, and steps."""
         yaml_content = (
             "title: Test Scenario\n"
             "base_url: http://localhost:3000\n"
@@ -61,6 +65,7 @@ class TestManifest:
     """Tests for the Manifest model."""
 
     def test_save_and_load_roundtrip(self, tmp_path: Path) -> None:
+        """Verify Manifest survives a save-then-load roundtrip."""
         manifest = Manifest(
             title="Test",
             steps=[
@@ -76,6 +81,7 @@ class TestManifest:
         assert loaded.steps[0].narration == "Hi"
 
     def test_empty_manifest(self, tmp_path: Path) -> None:
+        """Verify empty Manifest with no steps roundtrips correctly."""
         manifest = Manifest(title="Empty", steps=[])
         manifest_path = tmp_path / "manifest.json"
         manifest.save(manifest_path)
