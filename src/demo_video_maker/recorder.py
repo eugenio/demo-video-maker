@@ -248,16 +248,19 @@ async def record_scenario(
 
             await _execute_step(page, step, base_url)
 
-            # Post-action visuals
-            if click_position:
-                await _show_cursor_at(
-                    page, click_position[0], click_position[1], clicked=True,
-                )
-            elif step.action in {ActionType.NAVIGATE, ActionType.SCREENSHOT}:
-                await _hide_cursor(page)
+            # Post-action visuals (may fail if action triggered navigation)
+            try:
+                if click_position:
+                    await _show_cursor_at(
+                        page, click_position[0], click_position[1], clicked=True,
+                    )
+                elif step.action in {ActionType.NAVIGATE, ActionType.SCREENSHOT}:
+                    await _hide_cursor(page)
 
-            if step.highlight:
-                await _apply_highlight(page, step.highlight)
+                if step.highlight:
+                    await _apply_highlight(page, step.highlight)
+            except Exception:
+                logger.debug("Post-action visuals skipped (page navigated)")
 
             # Hold for pause duration (visible in video recording)
             await asyncio.sleep(pause)
@@ -279,7 +282,10 @@ async def record_scenario(
             )
 
             if step.highlight:
-                await _remove_highlight(page, step.highlight)
+                try:
+                    await _remove_highlight(page, step.highlight)
+                except Exception:
+                    pass
 
         # Finalize video recording
         session_video_path: str | None = None
