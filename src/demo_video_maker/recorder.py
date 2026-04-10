@@ -36,8 +36,11 @@ async def _execute_step(page: Page, step: Step, base_url: str) -> None:
                 try:
                     await loc.click(timeout=10000)
                 except Exception:
-                    logger.warning("Normal click failed on %s, forcing", step.selector)
-                    await loc.click(force=True, timeout=5000)
+                    logger.warning("Click failed on %s, using JS click", step.selector)
+                    await page.evaluate(
+                        "(sel) => { const el = document.querySelector(sel); if (el) el.click(); }",
+                        step.selector,
+                    )
         case ActionType.TYPE:
             if step.selector and step.text:
                 loc = page.locator(step.selector).first
