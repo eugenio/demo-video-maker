@@ -147,6 +147,9 @@ def record(
         click.echo(f"Generating narration ({tts} backend)...")
         manifest = generate_narration(manifest, work_dir / "audio", backend=backend)
 
+    # Save manifest with audio paths so 'stitch' command can re-use it
+    manifest.save(work_dir / "manifest.json")
+
     # 4. Stitch final video
     click.echo("Stitching video...")
     stitch_video(manifest, output, work_dir=work_dir)
